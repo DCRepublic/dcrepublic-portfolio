@@ -1,0 +1,98 @@
+---
+title: "SCCS Course Planner"
+description: "All-in-One Course Planning Tool for Swarthmore College"
+image: "/projects/planner.jpeg"
+tags: [Next.js, Prisma, PostgreSQL, Docker, Go]
+date: "2025-12-16"
+---
+
+# SCCS Course Planner — Course Planning for Students by Students
+
+**Role:** Full Stack & Infrastructure
+
+**Live site:** [plan.sccs.swarthmore.edu](https://plan.sccs.swarthmore.edu)
+
+**Repo:** [github.com/swat-sccs/planner](https://github.com/swat-sccs/planner)
+
+## Project Overview
+
+The SCCS Course Planner is what it sounds like — a tool for Swarthmore students
+to actually plan their classes, built and maintained by SCCS (Swarthmore's
+student-run Computer Society) instead of paid for through some third-party
+vendor. It's a Next.js 14 app on the frontend, backed by Postgres through
+Prisma, with course data pulled in by a separate Go scraper that hits the
+college's course catalog on a schedule and populates the database.
+
+I built everything here except the scraper itself — that's a Go module
+(`swatscraper`, pulled in as a submodule) another SCCS member wrote and
+maintains. Everything else, front to back — the Next.js app, the database schema
+and how it talks to Prisma, the Docker setup that runs the whole thing, and the
+cron job that wakes the scraper up on a schedule - I was able to own.
+
+## The App
+
+This app came out of the frustration of trying to plan my courses each semester.
+Swarthmore College's built-in course planning tool made course discoverability
+hard, and it was almost impossible to compare groups of courses to one another.
+Things were slow and clunky, so I figured, why not build it myself? Together
+with the help of other SCCS members, we embarked on a few-month-long sprint to
+get course planner up and running before the next semester's course selection
+rolled around. This was no easy feat, as we had to design the frontend from the
+ground up while also planning for what features we wanted to add. I forgot to
+mention that this project is a V2.0. Originally SCCS had a simple course planner
+that allowed the user to multi-select from a list of courses and it would render
+the view on a calendar with a shareable link. What didn't work too well is
+nothing was saved on a per-user account basis, meaning clearing browser storage
+meant losing everything. This was one of the first things we wanted to address
+with the new system: user accounts, saving multiple plans, while maintaining the
+calendar functionality, and even adding in a Rate My Professor style course and
+professor rating system.
+
+## Key Features
+
+A few things worth calling out specifically, since building them meant picking
+up skills beyond just "make a CRUD app":
+
+- **Debounced search** — search-as-you-type against the course catalog without
+  hammering the API on every keystroke.
+- **Complex filtering and querying via Prisma across a large Postgres dataset**
+  — multi-field filters (department, time slot, professor, credits, etc.)
+  compiled into efficient Prisma queries instead of pulling everything and
+  filtering client-side.
+- **Fast search at scale** — indexed, optimized lookups so search stays fast as
+  the catalog grows semester over semester instead of degrading as the dataset
+  gets bigger.
+- **iCal export** — generates standards-compliant `.ics` files so a plan can be
+  imported straight into Google Calendar, Apple Calendar, Outlook, or whatever
+  the student already uses.
+- **Per-user accounts with multiple saved plans** — this was the actual problem
+  I set out to fix. Real relational schema design for users, plans, and course
+  selections instead of V1's approach of shoving everything into browser storage
+  and hoping nobody clears their cache.
+- **Rate My Professor–style course and professor ratings** — a review/rating
+  system built from scratch, including how ratings aggregate per course and per
+  professor.
+
+## Docker & the Scraper Pipeline
+
+The trickiest part of this project wasn't the app itself, it was making sure
+course data actually stays current without anyone having to remember to run
+anything by hand.
+
+- **Docker Compose for everything.** There's a `docker-compose.yml` for
+  production and a separate `docker-compose.debug.yml` for local dev, so
+  contributors can spin up Postgres and the app with one command instead of
+  hand-installing a database locally.
+- **A dedicated cron container.** `Dockerfile.cron` builds a container whose
+  only job is to run the scraper on a schedule (`crontab_file` +
+  `cron-startup.sh`). I split this out from the main app container on purpose —
+  the scraper hitting the college's catalog and populating Postgres has nothing
+  to do with serving web traffic, and I didn't want a slow or failing scrape run
+  to be able to take the site down.
+- **Wiring the scraper in as a submodule.** Since I wasn't writing the Go
+  scraper, my job was making sure it fit cleanly into the rest of the stack —
+  pulling it in as a git submodule, giving it its own `.env`, and making sure
+  its container talks to the same Postgres instance as the app without stepping
+  on the schema Prisma expects.
+- **GitLab CI.** There's a `.gitlab-ci.yml` running builds and checks on every
+  push, so broken code doesn't make it to `main` unnoticed.

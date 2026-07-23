@@ -1,0 +1,85 @@
+---
+title: "CorridorKey.Cloud"
+description: "Distributed AI Powered Green Screen Compute Farm"
+image: "/projects/corridorkey.jpeg"
+tags: [Docker Swarm, Supabase, Traefik, CrowdSec]
+date: "2024-01-15"
+---
+
+# CorridorKey Cloud — A Distributed Green Screen Keying Farm
+
+**Role:** Backend & Infrastructure
+
+**Live site:** [corridorkey.cloud](https://corridorkey.cloud)
+
+**Repo:**
+[github.com/JamesNyeVRGuy/CorridorKey-Cloud](https://github.com/JamesNyeVRGuy/CorridorKey-Cloud)
+
+## Project Overview
+
+CorridorKey Cloud is a hosted version of
+[CorridorKey](https://github.com/nikopueringer/CorridorKey), an AI green-screen
+keying model originally built by Corridor Digital. The idea is simple: you
+upload green screen footage, it gets processed on a shared pool of GPUs
+contributed by the community, and you get back clean EXR mattes — no local GPU
+needed. There's a FastAPI backend, a SvelteKit frontend, a Redis-backed job
+queue, and a fleet of node agents running on volunteers' NVIDIA, AMD, and Apple
+Silicon machines.
+
+I didn't touch the model or the frontend. My part was everything underneath —
+taking the app from something that ran on a laptop to a real, publicly reachable
+service running entirely on enterprise grade hardware, with no cloud provider
+involved at any point. That last part is the thing I'm actually proud of here:
+everything below is something I had to build myself instead of clicking a button
+on AWS.
+
+## Docker Swarm
+
+The whole platform runs as a Docker Swarm cluster across a small number of
+physical machines. I went with Swarm over Kubernetes mostly because I wanted
+something I could reason about end to end on bare metal without needing a whole
+team to babysit it, and it's been the right call for this scale.
+
+A few specifics on how it's actually set up:
+
+- **Service separation by statefulness.** Stateless pieces of the app — the
+  FastAPI instances, the WebSocket fan-out layer — run as Swarm services with
+  multiple replicas and no pinned placement, so they can land on whatever node
+  has room and get rescheduled automatically if a node drops. Stateful
+  containers (Postgres/Supabase, Redis) gets pinned to specific nodes with
+  placement constraints and backed by real volumes, because I do not want my
+  database wandering around the cluster.
+- **Overlay networking.** Services talk to each other over Swarm's overlay
+  network rather than exposed ports, so the only thing actually facing the
+  internet is Traefik. Everything else is internal by default.
+- **Rolling updates.** Deploys go out as rolling updates with health checks
+  gating the rollout, so pushing a new image doesn't take down in-flight render
+  jobs. If a new version fails its health check, Swarm stops the rollout instead
+  of replacing every replica at once.
+- **Docker labels drive discovery.** Traefik picks up new services automatically
+  off Docker labels in the stack file, so bringing up a new service means
+  writing the compose file correctly one time.
+
+Getting comfortable with placement constraints, overlay networking, and rolling
+health-checked deploys on Swarm was honestly the most valuable thing I took away
+from this project.
+
+## Other Pieces of the Stack
+
+- **Traefik** sits at the edge, handles TLS certificates automatically, and
+  routes traffic to services based on Docker labels.
+- **CrowdSec** runs alongside Traefik parsing access logs in real time and
+  banning abusive IPs at the edge. Running production infra on a home connection
+  means you are a scanning target basically 24/7, so this matters more here than
+  it would on a cloud box behind someone else's WAF. (This was actually a step I
+  took after we had our first incident of spamming an account creation endpoint.
+  Ill never forget that mistake!)
+- **DNS**, including all the records needed for mail to actually deliver (SPF,
+  DKIM, DMARC).
+- **A self-hosted mail server** handles transactional email — signup approvals,
+  notifications — instead of paying for a third-party email API.
+- **Self-hosted Supabase** gives the app Postgres, auth, and realtime without
+  paying for a managed version, while keeping the data on hardware I control.
+- **NFS** provides shared storage between the API server and local GPU nodes, so
+  clips and render output can be read and written directly instead of shuttled
+  around over HTTP for every frame.
