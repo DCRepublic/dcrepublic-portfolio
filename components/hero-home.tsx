@@ -240,7 +240,7 @@ export function HeroHome() {
 
       {/* Navigation */}
       <nav id="nav" className="nav">
-        <a href="/resume" data-magnetic>
+        <a href="/resume.pdf" data-magnetic>
           Resume
         </a>
         <a href="/projects" data-magnetic>
