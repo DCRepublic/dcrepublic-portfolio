@@ -1,6 +1,5 @@
-import { HomeClient } from "@/components/home-client"
-import { getProjects } from "@/lib/projects"
+import { HeroHome } from "@/components/hero-home"
 
 export default function Home() {
-  return <HomeClient projects={getProjects()} />
+  return <HeroHome />
 }

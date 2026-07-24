@@ -17,6 +17,7 @@
     "@mdx-js/react": "^3.1.1",
     "@studio-freight/lenis": "^1.0.42",
     "@tailwindcss/typography": "^0.5.20",
+    "animejs": "^3.2.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.42.2",
@@ -31,6 +32,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/animejs": "^3.1.13",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono, Inter } from "next/font/google"
+import { Geist, Geist_Mono } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -6,8 +6,13 @@ import { LenisProvider } from "@/components/lenis-provider"
 import { ClientLayout } from "@/components/client-layout"
 import { cn } from "@/lib/utils"
 import localFont from "next/font/local"
+import { HeroNav } from "@/components/hero-nav"
 
-//const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
+const bricolage = Geist({
+  subsets: ["latin"],
+  variable: "--font-heading",
+})
+
 const sfPro = localFont({
   src: [
     {
@@ -37,14 +42,20 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", sfPro.variable, "font-sans", sfPro.variable)}
+      className={cn(
+        "antialiased",
+        sfPro.variable,
+        "font-sans",
+        bricolage.variable
+      )}
     >
       <body>
-        <ThemeProvider>
-          <LenisProvider>
-            <ClientLayout>{children}</ClientLayout>
-          </LenisProvider>
-        </ThemeProvider>
+        {/* <ThemeProvider> */}
+        <LenisProvider>
+          <HeroNav />
+          <ClientLayout>{children}</ClientLayout>
+        </LenisProvider>
+        {/* </ThemeProvider> */}
       </body>
     </html>
   )

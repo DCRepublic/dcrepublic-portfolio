@@ -4,8 +4,6 @@ import { useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { LayoutGroup } from "framer-motion"
 import { usePathname } from "next/navigation"
-import { HeroNav } from "@/components/hero-nav"
-import { LoadingScreen } from "@/components/loading-screen"
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -16,9 +14,6 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <LayoutGroup id="route-shell">
-      <LoadingScreen />
-      <HeroNav />
-
       {pathname === "/" ? (
         children
       ) : (
