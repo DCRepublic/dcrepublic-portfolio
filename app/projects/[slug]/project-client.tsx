@@ -17,7 +17,7 @@ interface ProjectData {
 export function ProjectPageClient({ project }: { project: ProjectData }) {
   return (
     <>
-      <Section className="pt-30 pb-28">
+      <Section className="pt-10 pb-10">
         <div className="mx-auto max-w-7xl px-6">
           <Link
             href="/projects"

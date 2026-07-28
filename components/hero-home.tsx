@@ -2,10 +2,12 @@
 
 import { useEffect, useRef } from "react"
 import anime from "animejs"
+import Link from "next/link"
 import { NoiseGrain } from "./noise-grain"
 
 export function HeroHome() {
   const headingRef = useRef<HTMLHeadingElement>(null)
+  const navRef = useRef<HTMLElement>(null)
   const blobState = useRef({ scale: 0 })
 
   useEffect(() => {
@@ -59,7 +61,7 @@ export function HeroHome() {
             scale: [0, 1],
             duration: 1000,
             easing: "easeOutElastic(1, 0.6)",
-          } as any,
+          } as anime.AnimeParams,
           "-=350"
         )
         .add(
@@ -76,25 +78,16 @@ export function HeroHome() {
         .add(
           {
             targets: newChars,
-            translateY: (el: HTMLElement) => [
-              `${(el as HTMLElement).dataset.y}px`,
-              "0px",
-            ],
-            translateX: (el: HTMLElement) => [
-              `${(el as HTMLElement).dataset.x}px`,
-              "0px",
-            ],
-            rotateZ: (el: HTMLElement) => [
-              `${(el as HTMLElement).dataset.rz}deg`,
-              "0deg",
-            ],
+            translateY: (el: HTMLElement) => [`${el.dataset.y}px`, "0px"],
+            translateX: (el: HTMLElement) => [`${el.dataset.x}px`, "0px"],
+            rotateZ: (el: HTMLElement) => [`${el.dataset.rz}deg`, "0deg"],
             scale: [1.6, 1],
             filter: ["blur(14px)", "blur(0px)"],
             opacity: [0, 1],
             duration: 900,
             delay: anime.stagger(26),
             easing: "easeOutElastic(1, 0.75)",
-          } as any,
+          } as anime.AnimeParams,
           "-=350"
         )
         .add(
@@ -116,7 +109,7 @@ export function HeroHome() {
             duration: 750,
             delay: anime.stagger(90),
             easing: "easeOutElastic(1, 0.6)",
-          } as any,
+          } as anime.AnimeParams,
           "-=400"
         )
         .add(
@@ -130,7 +123,14 @@ export function HeroHome() {
         )
 
       // Magnetic nav buttons
-      const navLinks = document.querySelectorAll<HTMLElement>("[data-magnetic]")
+      const navLinks =
+        navRef.current?.querySelectorAll<HTMLElement>("[data-magnetic]") ?? []
+      const handlers: Array<{
+        el: HTMLElement
+        onMouseMove: (e: MouseEvent) => void
+        onMouseLeave: () => void
+      }> = []
+
       navLinks.forEach((el) => {
         const onMouseMove = (e: MouseEvent) => {
           const rect = el.getBoundingClientRect()
@@ -155,42 +155,42 @@ export function HeroHome() {
           })
         }
 
+        handlers.push({ el, onMouseMove, onMouseLeave })
         el.addEventListener("mousemove", onMouseMove)
         el.addEventListener("mouseleave", onMouseLeave)
       })
-    } else {
-      blobState.current.scale = 1
-      document.querySelectorAll(".eyebrow, .subtitle, nav a").forEach((el) => {
-        ;(el as HTMLElement).style.opacity = "1"
-      })
-    }
 
-    // Ambient cursor-following blob
-    const blob = document.getElementById("blob") as HTMLElement | null
-    if (!blob) return
+      // Ambient cursor-following blob
+      const blob = document.getElementById("blob") as HTMLElement | null
+      if (!blob) return
 
-    let mouseX = window.innerWidth / 2
-    let mouseY = window.innerHeight / 2
-    let blobX = mouseX
-    let blobY = mouseY
+      let mouseX = window.innerWidth / 2
+      let mouseY = window.innerHeight / 2
+      let blobX = mouseX
+      let blobY = mouseY
 
-    const animateBlob = () => {
-      blobX += (mouseX - blobX) * 0.06
-      blobY += (mouseY - blobY) * 0.06
-      blob.style.transform = `translate(${blobX}px, ${blobY}px) scale(${blobState.current.scale})`
-      requestAnimationFrame(animateBlob)
-    }
-    animateBlob()
+      const animateBlob = () => {
+        blobX += (mouseX - blobX) * 0.06
+        blobY += (mouseY - blobY) * 0.06
+        blob.style.transform = `translate(${blobX}px, ${blobY}px) scale(${blobState.current.scale})`
+        requestAnimationFrame(animateBlob)
+      }
+      animateBlob()
 
-    const onMouseMove = (e: MouseEvent) => {
-      mouseX = e.clientX
-      mouseY = e.clientY
-    }
+      const onMouseMove = (e: MouseEvent) => {
+        mouseX = e.clientX
+        mouseY = e.clientY
+      }
 
-    window.addEventListener("mousemove", onMouseMove)
+      window.addEventListener("mousemove", onMouseMove)
 
-    return () => {
-      window.removeEventListener("mousemove", onMouseMove)
+      return () => {
+        handlers.forEach(({ el, onMouseMove, onMouseLeave }) => {
+          el.removeEventListener("mousemove", onMouseMove)
+          el.removeEventListener("mouseleave", onMouseLeave)
+        })
+        window.removeEventListener("mousemove", onMouseMove)
+      }
     }
   }, [])
 
@@ -239,19 +239,24 @@ export function HeroHome() {
       </p>
 
       {/* Navigation */}
-      <nav id="nav" className="nav">
-        <a href="/resume.pdf" data-magnetic>
+      <nav ref={navRef} id="nav" className="nav">
+        <Link
+          href="/resume.pdf"
+          data-magnetic
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           Resume
-        </a>
-        <a href="/projects" data-magnetic>
+        </Link>
+        <Link href="/projects" data-magnetic>
           Projects
-        </a>
-        <a href="/photography" data-magnetic>
+        </Link>
+        <Link href="/photography" data-magnetic>
           Photography
-        </a>
-        <a href="/about" data-magnetic>
+        </Link>
+        <Link href="/about" data-magnetic>
           About
-        </a>
+        </Link>
       </nav>
     </main>
   )

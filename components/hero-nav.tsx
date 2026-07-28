@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
+import anime from "animejs"
 
 interface NavItem {
   label: string
@@ -25,6 +26,55 @@ export function HeroNav() {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
   const [blogAvailable, setBlogAvailable] = useState<boolean | null>(null)
+  const navRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches
+
+    if (!reduceMotion && navRef.current) {
+      const links =
+        navRef.current.querySelectorAll<HTMLElement>("a[data-magnetic]")
+      const cleanupFns: Array<() => void> = []
+
+      links.forEach((el) => {
+        const onMouseMove = (e: MouseEvent) => {
+          const rect = el.getBoundingClientRect()
+          const relX = e.clientX - rect.left - rect.width / 2
+          const relY = e.clientY - rect.top - rect.height / 2
+          anime({
+            targets: el,
+            translateX: relX * 0.28,
+            translateY: relY * 0.5,
+            duration: 400,
+            easing: "easeOutQuad",
+          })
+        }
+
+        const onMouseLeave = () => {
+          anime({
+            targets: el,
+            translateX: 0,
+            translateY: 0,
+            duration: 600,
+            easing: "easeOutElastic(1, 0.5)",
+          })
+        }
+
+        el.addEventListener("mousemove", onMouseMove)
+        el.addEventListener("mouseleave", onMouseLeave)
+        cleanupFns.push(() => {
+          el.removeEventListener("mousemove", onMouseMove)
+          el.removeEventListener("mouseleave", onMouseLeave)
+        })
+      })
+
+      return () => {
+        cleanupFns.forEach((fn) => fn())
+      }
+    }
+  }, [pathname])
 
   useEffect(() => {
     fetch("https://damianrene.dev/rss/")
@@ -44,18 +94,10 @@ export function HeroNav() {
   const isSubpage = !isHero
 
   return (
-    <LayoutGroup id="hero-nav">
+    <LayoutGroup>
       {/* Nav state — compact bar at top with name + buttons */}
       {pathname != "/" && (
-        <motion.div
-          className="pointer-events-none fixed inset-x-0 z-50"
-          animate={{
-            opacity: isSubpage ? 1 : 0,
-            y: isSubpage ? 0 : -20,
-          }}
-          transition={{ duration: 0.7, ease }}
-          style={{ pointerEvents: isSubpage ? "auto" : "none" }}
-        >
+        <div>
           <div className="pt-3 md:pt-[calc(1rem+0.5vw)]">
             <div className="pointer-events-auto mx-3 md:mx-[calc(0.75rem+0.5vw)]">
               <div
@@ -75,21 +117,23 @@ export function HeroNav() {
                     </motion.span>
                   </Link>
 
-                  <div
-                    className={`grid w-full gap-1.5 ${navItems.length === 4 ? "grid-cols-4" : "grid-cols-5"} md:w-[min(80vw,40rem)] md:gap-2`}
+                  <nav
+                    ref={navRef}
+                    className={`hidden w-full gap-1.5 md:grid ${navItems.length === 4 ? "grid-cols-4" : "grid-cols-5"} md:w-[min(80vw,40rem)] md:gap-2`}
                   >
                     {navItems.map((item) => (
                       <Link
+                        data-magnetic
                         key={item.label}
                         href={item.href}
                         target={item.external ? "_blank" : undefined}
                         rel={item.external ? "noopener noreferrer" : undefined}
-                        className="w-full rounded-full border border-border bg-background/30 px-5 py-2.5 text-center text-sm text-foreground shadow-sm transition-all duration-300 hover:border-foreground/30 hover:shadow-[0_8px_32px_rgba(0,0,0,0.08)]"
+                        className="hero-nav-link w-full text-center"
                       >
                         {item.label}
                       </Link>
                     ))}
-                  </div>
+                  </nav>
 
                   <button
                     className="md:hidden"
@@ -102,7 +146,7 @@ export function HeroNav() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* Mobile menu overlay */}

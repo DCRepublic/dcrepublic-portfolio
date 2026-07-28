@@ -23,7 +23,7 @@ const socials = [
 export default function AboutPage() {
   return (
     <>
-      <Section className="pt-32">
+      <Section className="pt-10">
         <SectionHeader label="About" title="Get in touch" />
 
         <div className="content-max -mt-7">

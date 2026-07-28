@@ -15,7 +15,7 @@ interface BlogPost {
 export function BlogPageClient({ posts }: { posts: BlogPost[] }) {
   return (
     <>
-      <Section id="blog" className="pt-32">
+      <Section id="blog" className="pt-10">
         <SectionHeader
           label="Writing"
           title="Blog"

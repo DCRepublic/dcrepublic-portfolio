@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { X, ChevronLeft, ChevronRight } from "lucide-react"
 
@@ -30,7 +30,7 @@ export function PhotographyGallery({ photos }: { photos: Photo[] }) {
 
   return (
     <>
-      <Section id="photography" className="pt-32">
+      <Section id="photography" className="pt-10">
         <SectionHeader
           label="Gallery"
           title="Photography"
@@ -150,7 +150,7 @@ function KeyboardHandler({
   onNext?: () => void
   onClose: () => void
 }) {
-  useState(() => {
+  useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose()
       if (e.key === "ArrowLeft" && onPrev) onPrev()
@@ -158,7 +158,7 @@ function KeyboardHandler({
     }
     window.addEventListener("keydown", handler)
     return () => window.removeEventListener("keydown", handler)
-  })
+  }, [onPrev, onNext, onClose])
 
   return null
 }

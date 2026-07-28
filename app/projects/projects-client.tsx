@@ -15,8 +15,8 @@ interface Project {
 export function ProjectsPageClient({ projects }: { projects: Project[] }) {
   return (
     <>
-      <Section id="projects" className="pt-32">
-        <SectionHeader label="Selected Work" title="Projects" description="" />
+      <Section id="projects" className="pt-10">
+        <SectionHeader label="Noteable Work" title="Projects" description="" />
 
         <div className="grid gap-8 lg:grid-cols-3">
           {projects.map((project) => (
@@ -30,7 +30,7 @@ export function ProjectsPageClient({ projects }: { projects: Project[] }) {
 
 function ProjectCard({ project }: { project: Project }) {
   return (
-    <article className="group h-full cursor-pointer">
+    <article className="group h-full cursor-pointer rounded-xl shadow-xl">
       <Link href={`/projects/${project.slug}`} className="block h-full">
         <div
           className="flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-background transition-shadow duration-500 group-hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]"
@@ -38,6 +38,7 @@ function ProjectCard({ project }: { project: Project }) {
         >
           <div className="relative aspect-16/10 overflow-hidden">
             <Image
+              loading="eager"
               src={project.image}
               alt={project.title}
               fill
@@ -57,7 +58,7 @@ function ProjectCard({ project }: { project: Project }) {
               {project.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground"
+                  className="rounded-full border border-border px-3 py-1 text-sm text-muted-foreground"
                 >
                   {tag}
                 </span>
