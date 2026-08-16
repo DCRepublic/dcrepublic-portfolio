@@ -7,6 +7,7 @@ import { ClientLayout } from "@/components/client-layout"
 import { cn } from "@/lib/utils"
 import localFont from "next/font/local"
 import { HeroNav } from "@/components/hero-nav"
+import { init } from "@plausible-analytics/tracker"
 
 const bricolage = Geist({
   subsets: ["latin"],
@@ -32,6 +33,10 @@ export const metadata = {
   title: "Damian René — Full Stack Developer & Photographer",
   description: "Building software, designing experiences, capturing moments.",
 }
+
+init({
+  domain: "damianrene.dev",
+})
 
 export default function RootLayout({
   children,
