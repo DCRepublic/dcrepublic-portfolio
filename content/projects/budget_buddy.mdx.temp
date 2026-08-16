@@ -1,7 +1,7 @@
 ---
 title: "Budget Buddy"
 description: "Helping Swarthmore students budget their meal points!"
-image: "/projects/budget_buddy.webp"
+image: "/projects/budget_buddy.png"
 tags: [React Native, App Store, iOS App]
 date: "2025-11-05"
 ---
@@ -15,6 +15,17 @@ date: "2025-11-05"
 
 **Repo:**
 [github.com/JamesNyeVRGuy/CorridorKey-Cloud](https://github.com/JamesNyeVRGuy/CorridorKey-Cloud)
+
+<div className="flex flex-col gap-5 lg:flex-row">
+  <img
+    className="mt-10 max-h-250 rounded-xl lg:max-h-100"
+    src="/projects/bb_main.PNG"
+  ></img>
+  <img
+    className="mt-10 max-h-250 rounded-xl lg:max-h-100"
+    src="/projects/bb_transactions.PNG"
+  ></img>
+</div>
 
 ## Project Overview
 
