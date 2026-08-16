@@ -1,5 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google"
 
+// declare global plausible to satisfy TypeScript for the inline script
+declare let plausible: any
+
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { LenisProvider } from "@/components/lenis-provider"
@@ -7,7 +10,6 @@ import { ClientLayout } from "@/components/client-layout"
 import { cn } from "@/lib/utils"
 import localFont from "next/font/local"
 import { HeroNav } from "@/components/hero-nav"
-import { init } from "@plausible-analytics/tracker"
 
 const bricolage = Geist({
   subsets: ["latin"],
@@ -34,10 +36,6 @@ export const metadata = {
   description: "Building software, designing experiences, capturing moments.",
 }
 
-init({
-  domain: "damianrene.dev",
-})
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -54,6 +52,26 @@ export default function RootLayout({
         bricolage.variable
       )}
     >
+      <head>
+        <script
+          async
+          src="https://plausible.damianrene.dev/js/pa-SDJD1EULdUOFnCWQZoMUC.js"
+        ></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+            window.plausible = window.plausible || function () {
+              (window.plausible.q = window.plausible.q || []).push(arguments)
+            }
+            window.plausible.init = window.plausible.init || function (i) {
+              window.plausible.o = i || {}
+            }
+            window.plausible.init()
+          `,
+          }}
+        />
+      </head>
+
       <body>
         {/* <ThemeProvider> */}
         <LenisProvider>
